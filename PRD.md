@@ -9,3 +9,6 @@ transitions 라이브러리를 이용해서 새로운 상태 'AUTORUN'을 추가
 
 AUTORUN 상태에서 5초 이상 경과하면 IDLE 상태로 변환된다.
 AUTORUN 상태에서 방향키를 누르면 RUN 상태로 변환된다.
+
++ 추가 지시사항
+AUTORUN 상태일 때 캐릭터가 밝은 무지개빛으로 빛난다
