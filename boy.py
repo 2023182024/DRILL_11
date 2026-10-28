@@ -164,6 +164,8 @@ class Boy:
 
     def draw(self):
         size = 200 if self.state == 'AUTORUN' else 100
+        # 확대된 캐릭터가 grass에 파묻히지 않도록 위치 보정
+        self.y = (130 if self.state == 'AUTORUN' else 90)
 
         if self.state=='RUN' or self.state == 'WALK' or self.state == 'AUTORUN':
             if self.face_dir == 2:
