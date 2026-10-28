@@ -1,6 +1,8 @@
 from pico2d import *
 from transitions import Machine
 import time
+import math
+import ctypes
 
 class Boy:
     SCREEN_WIDTH = 800
@@ -135,6 +137,31 @@ class Boy:
         if self.state == 'IDLE' and time.monotonic() - self.last_control_time >= 30:
             self.fall_asleep()
 
+    def _rainbow_color(self):
+        t = time.monotonic() * 2.0
+        hue = t - int(t)
+        # HSV (h,1,1) -> RGB
+        h = hue * 6.0
+        i = int(h) % 6
+        f = h - int(h)
+        v = 1.0
+        p = 0.0
+        q = v * (1 - f)
+        rr = v * (1 - (1 - f))
+        if i == 0:
+            r, g, b = v, rr, p
+        elif i == 1:
+            r, g, b = q, v, p
+        elif i == 2:
+            r, g, b = p, v, rr
+        elif i == 3:
+            r, g, b = p, q, v
+        elif i == 4:
+            r, g, b = rr, p, v
+        else:
+            r, g, b = v, p, q
+        return int(r * 255), int(g * 255), int(b * 255)
+
     def draw(self):
         size = 200 if self.state == 'AUTORUN' else 100
 
@@ -148,6 +175,22 @@ class Boy:
                 self.cursor=2
             else:
                 self.cursor=3
+
+        sdl = ctypes.windll.SDL2
+
+        if self.state == 'AUTORUN':
+            # rainbow glow (additive) drawn slightly larger behind
+            gr, gg, gb = self._rainbow_color()
+            sdl.SDL_SetTextureColorMod(self.image.texture, gr, gg, gb)
+            sdl.SDL_SetTextureBlendMode(self.image.texture, 2)  # SDL_BLENDMODE_ADD
+            glow_size = size + 40
+            if self.state == 'SLEEP':
+                self.image.clip_composite_draw(self.frame * 100, self.cursor * 100, 100, 100, math.radians(90), '', self.x, self.y - 20, glow_size, glow_size)
+            else:
+                self.image.clip_draw(self.frame * 100, self.cursor * 100, 100, 100, self.x, self.y, glow_size, glow_size)
+            # reset blend
+            sdl.SDL_SetTextureBlendMode(self.image.texture, 1)  # blend
+            sdl.SDL_SetTextureColorMod(self.image.texture, 255, 255, 255)
 
         if self.state=='SLEEP':
             self.image.clip_composite_draw(self.frame * 100,self.cursor*100, 100, 100,math.radians(90),'', self.x, self.y-20,size,size)
